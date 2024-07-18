@@ -1,8 +1,9 @@
-import numpy as np # linear algebra
-import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+import numpy as np 
+import pandas as pd
 import re
 import requests
 from bs4 import BeautifulSoup
+from tabulate import tabulate
 
 link = "https://www.holidify.com/explore/"
 P_link = requests.get(link)
@@ -18,14 +19,14 @@ containers = P_soup.findAll("div", {"class" : "col-12 col-md-6 pr-md-3"})
 
 print(len(containers))
 
-pattern = r'(\d+)\.\s+([^-\n]+)\s+-\s+(.*)'
+pattern = r'(\d+)\.\s+([^-\n]+)\s*(?:-\s*(.*))?'
 #(\d+): Captures one or more digits.
 #\.: Matches the literal dot after the number.
 #\s+: Matches one or more whitespace characters.
 #([^-\n]+): Captures the country name, which consists of any characters except the dash (-) or newline (\n).
 #\s+-\s+: Matches the dash surrounded by spaces.
 #(.*): Captures the rest of the line, which is the description.
-
+#(?:-\s*(.*))? part matches the dash and the description if present but does not fail if they are missing.
 ranks = []
 countries = []
 descriptions = []
@@ -38,13 +39,16 @@ for container in containers:
 
         if match:
             rank = match.group(1)
-            country = match.group(2).strip()
-            description = match.group(3).strip()
+            country = match.group(2).strip() 
+            description = match.group(3).strip() if match.group(3) else 'N/A'
             ranks.append(rank)
             countries.append(country)
             descriptions.append(description)
-
+        
 country_ranks = pd.DataFrame({'Rank': ranks,
                               'Country': countries,
                               'Description': descriptions})
-print(country_ranks)
+
+
+
+print(tabulate(country_ranks, headers = 'keys', tablefmt = 'psql', showindex=False))
