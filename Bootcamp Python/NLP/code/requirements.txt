@@ -1,0 +1,25 @@
+# Notebooks
+jupyter
+
+# Data
+numpy
+pandas
+
+# Visualisation
+matplotlib
+wordcloud
+
+# Machine Learning
+scikit-learn
+
+# Deep Learning
+torch
+
+# NLP
+nltk
+spacy
+sentence-transformers
+
+# Hugging Face
+transformers
+datasets
