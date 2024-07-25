@@ -4,9 +4,15 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 import time
 
+dbname="nhai"
+user="postgres"
+password="***REMOVED***"
+host="localhost"
+port=5432  
+
 # Paths and connection details
 sqlite_db_path = r'C:\Users\suici\Github\Indian_Tolls_Scrape\nhai_info.db'
-postgres_connection_string = 'postgresql://postgres:***REMOVED***@localhost:5432/nhai'
+postgres_connection_string = f'postgresql://{user}:{password}@{host}:{port}/{dbname}'
 
 # Function to create table in PostgreSQL with quoted identifiers
 def create_postgres_table(postgres_conn, table_name, columns):
