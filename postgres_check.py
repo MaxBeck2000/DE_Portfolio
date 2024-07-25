@@ -1,17 +1,21 @@
 import psycopg2
 from sqlalchemy import create_engine, text
 
-# PostgreSQL database connection details
-postgres_connection_string = 'postgresql://postgres:***REMOVED***@localhost:5432/nhai'
+dbname="nhai"
+user="postgres"
+password="***REMOVED***"
+host="localhost"
+port=5432  
+
+postgres_connection_string = f'postgresql://{user}:{password}@{host}:{port}/{dbname}'
 
 try:
-    # Using psycopg2 directly
     conn = psycopg2.connect(
-        dbname="nhai",       # Name of the database
-        user="postgres",     # Username
-        password="***REMOVED***",   # Password
-        host="localhost",    # Host
-        port=5432            # Port (must be an integer)
+        dbname= dbname,
+        user= user,
+        password= password,
+        host = host,
+        port = port
     )
     cursor = conn.cursor()
     cursor.execute("SELECT version();")
