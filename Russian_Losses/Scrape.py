@@ -4,9 +4,12 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from tabulate import tabulate
+from datetime import date
 
 link = "https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-equipment.html"
 P_link = requests.get(link)
+
+scrape_date = date.today()
 
 if P_link.status_code == 200:
     print('Scraping is allowed')
@@ -16,13 +19,19 @@ else:
 html = P_link.text
 soup = BeautifulSoup(html, "html.parser")
 
+equipment_dict = {}
 
 span_elements = soup.find_all('span', {'class': 'mw-headline', 'id': 'Pistols'})
 
-equipment_types = [span.get_text(strip=True) for span in span_elements if span.get_text(strip=True)]
+for span in span_elements:
+    equipment_type = span.get_text(strip = True)
+    for type in equipment_type:
+        nums = span.find_parent('h3')
+        loss_nums = nums = span.find_parent('h3').get_text(strip = True).replace(equipment_type, '').strip()
+    equipment_dict[equipment_type] = loss_nums
 
-print(equipment_types)
-
+for eq_type, losses in equipment_dict.items():
+    print(f"{eq_type}:\nLosses (as of {scrape_date}) : {losses}\n{'-'*40}")
 
 # # If the tanks section is found
 # if tanks_section:
