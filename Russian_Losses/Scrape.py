@@ -7,6 +7,8 @@ from tabulate import tabulate
 import sqlite3
 import os
 
+from twitter import extract_tweet_id, get_tweet_time
+
 link = "https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-equipment.html"
 P_link = requests.get(link)
 
@@ -33,9 +35,10 @@ for span in span_elements:
 
         if ul_element:
             li_items = ul_element.find_all('li')
+
             for li in li_items:
                 full_string = li.get_text(strip=True)
-                
+
                 # Extract model count and model name
                 match = re.match(r'(\d+)\s*(.*?)(?=\(\d+,\s)', full_string)
                 if match:
@@ -47,24 +50,31 @@ for span in span_elements:
 
                 # Find all <a> tags with href attributes
                 a_tags = li.find_all('a', href=True)
+        
                 for a in a_tags:
                     img_link = a['href']
                     img_desc = a.get_text(strip=True).strip('()')
+
+                    # Optional: Check for Twitter URL and extract date
+                    tweet_time = 'N/A'  # Default value
+                    if 'twitter.com' in img_link:
+                        tweet_id = extract_tweet_id(img_link)
+                        if tweet_id is not None:
+                            tweet_time = get_tweet_time(tweet_id)
                     
                     records.append({
                         'Equipment Type': equipment_type,
                         'Model': model,
                         'Model Count': count,
                         'Description': img_desc,
+                        'Date Uploaded': tweet_time,
                         'Image Link': img_link,
                         'Date Scraped': scrape_date
                     })
 
-# Convert the records into a DataFrame
 df = pd.DataFrame(records)
 
-# Display the DataFrame as a table
-#print(tabulate(df, headers='keys', tablefmt='psql'))
+#print(tabulate(df.head(), headers='keys', tablefmt='psql'))
 
 # Save the DataFrame to a SQLite database
 folder_path = r"C:\Users\suici\Github\Russian_Losses"
@@ -73,8 +83,6 @@ table_name = 'equipment_losses'
 db_full_path = os.path.join(folder_path, db_filename)
 
 conn = sqlite3.connect(db_full_path)
-
 df.to_sql(table_name, conn, if_exists='replace', index=False)
-
 conn.commit()
 conn.close()
