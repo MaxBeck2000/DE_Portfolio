@@ -15,7 +15,6 @@ scrape_date = date.today()
 html = P_link.text
 soup = BeautifulSoup(html, "html.parser")
 
-equipment_dict = {}
 records = []
 
 # Find all span elements with the class 'mw-headline' and id 'Pistols'
@@ -37,40 +36,41 @@ for span in span_elements:
             for li in li_items:
                 full_string = li.get_text(strip=True)
                 
-                # Extract model names if possible
-                match = re.search(r'^[^\d]*(.*?):', full_string)
-                model = match.group(1).strip() if match else 'Unknown'
+                # Extract model count and model name
+                match = re.match(r'(\d+)\s*(.*?)(?=\(\d+,\s)', full_string)
+                if match:
+                    count = int(match.group(1))
+                    model = match.group(2).strip().rstrip(':')
+                else:
+                    count = 0
+                    model = full_string.split(':')[0]
+
+                # Find all <a> tags with href attributes
                 a_tags = li.find_all('a', href=True)
                 for a in a_tags:
                     img_link = a['href']
-                    img_desc = a.get_text(strip=True)
+                    img_desc = a.get_text(strip=True).strip('()')
                     
                     records.append({
                         'Equipment Type': equipment_type,
                         'Model': model,
+                        'Model Count': count,
                         'Description': img_desc,
                         'Image Link': img_link,
                         'Date Scraped': scrape_date
                     })
 
-        equipment_dict[equipment_type] = {
-            'loss_numbers': loss_nums,
-            'models': [rec['Model'] for rec in records if rec['Equipment Type'] == equipment_type],
-            'images': [rec for rec in records if rec['Equipment Type'] == equipment_type]
-        }
-    # else:
-    #     print(f"Debug: No parent <h3> element found for span with text '{equipment_type}'")
-
+# Convert the records into a DataFrame
 df = pd.DataFrame(records)
 
-#print(tabulate(df, headers = 'keys', tablefmt = 'psql'))
+# Display the DataFrame as a table
+#print(tabulate(df, headers='keys', tablefmt='psql'))
 
-#df.to_csv('equipment_data.csv', index=False)
-
+# Save the DataFrame to a SQLite database
 folder_path = r"C:\Users\suici\Github\Russian_Losses"
 db_filename = 'russian_loss_data.db'
 table_name = 'equipment_losses'
-db_full_path = os.path.join(folder_path,db_filename)
+db_full_path = os.path.join(folder_path, db_filename)
 
 conn = sqlite3.connect(db_full_path)
 
