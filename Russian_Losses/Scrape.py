@@ -9,6 +9,8 @@ import os
 
 from twitter import extract_tweet_id, get_tweet_time
 
+from postimg import check_for_date
+
 link = "https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-equipment.html"
 P_link = requests.get(link)
 
@@ -55,19 +57,22 @@ for span in span_elements:
                     img_link = a['href']
                     img_desc = a.get_text(strip=True).strip('()')
 
-                    # Optional: Check for Twitter URL and extract date
-                    tweet_time = 'N/A'  # Default value
+                    post_time = 'N/A'  # Default value
                     if 'twitter.com' in img_link:
                         tweet_id = extract_tweet_id(img_link)
                         if tweet_id is not None:
-                            tweet_time = get_tweet_time(tweet_id)
-                    
+                            post_time = get_tweet_time(tweet_id).date()
+                    elif 'postimg' in img_link:
+                        date_found, date_obj = check_for_date(img_link)
+                        if date_found:
+                            post_time = date_obj.date()
+                        
                     records.append({
                         'Equipment Type': equipment_type,
                         'Model': model,
-                        'Model Count': count,
+                        'Total Model Losses': count,
                         'Description': img_desc,
-                        'Date Uploaded': tweet_time,
+                        'Image Date': post_time,
                         'Image Link': img_link,
                         'Date Scraped': scrape_date
                     })
