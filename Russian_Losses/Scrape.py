@@ -62,6 +62,10 @@ for span in span_elements:
                         tweet_id = extract_tweet_id(img_link)
                         if tweet_id is not None:
                             post_time = get_tweet_time(tweet_id).date()
+                    elif 'x.com' in img_link:
+                        tweet_id = extract_tweet_id(img_link)
+                        if tweet_id is not None:
+                            post_time = get_tweet_time(tweet_id).date()
                     elif 'postimg' in img_link:
                         date_found, date_obj = check_for_date(img_link)
                         if date_found:
