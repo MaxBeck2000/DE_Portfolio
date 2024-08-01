@@ -10,7 +10,6 @@ import csv
 from twitter import extract_tweet_id, get_tweet_time
 from postimg import check_for_date
 
-# Initialize the URL and other variables
 link = "https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-equipment.html"
 P_link = requests.get(link)
 
@@ -20,7 +19,7 @@ html = P_link.text
 soup = BeautifulSoup(html, "html.parser")
 
 records = []
-no_date = []  # Initialize outside the loop to collect all links without dates
+no_date = [] 
 
 # CSV file path for URLs without dates
 csv_file_path = r'C:\Users\suici\Github\Russian_Losses\urls_without_dates.csv'
@@ -41,12 +40,12 @@ def append_urls_to_csv(url_list, csv_file_path):
         with open(csv_file_path, mode='a', newline='') as file:
             writer = csv.writer(file)
             for url in new_urls:
-                writer.writerow([url])  # Write each new URL
+                writer.writerow([url])
 
-# Read existing URLs before scraping
+# Read existing URLs stored in CSV before sraping
 existing_urls = read_existing_urls(csv_file_path)
 
-# Find all span elements with the class 'mw-headline' and id 'Pistols'
+# Find all span elements with the class 'mw-headline' and id 'Pistols' as these contain equipment classes
 span_elements = soup.find_all('span', {'class': 'mw-headline', 'id': 'Pistols'})
 
 for span in span_elements:
@@ -81,7 +80,7 @@ for span in span_elements:
                 for a in a_tags:
                     img_link = a['href']
                     img_desc = a.get_text(strip=True).strip('()')
-                    post_time = 'N/A'  # Default value
+                    post_time = 'N/A'
                     if 'twitter.com' in img_link or 'x.com' in img_link:
                         tweet_id = extract_tweet_id(img_link)
                         if tweet_id is not None:
@@ -104,10 +103,9 @@ for span in span_elements:
                         'Date Scraped': scrape_date
                     })
 
-# Convert records to DataFrame
 df = pd.DataFrame(records)
 
-# Print URLs without date
+#prints new URL's without date from future scrapes
 print("URLs without date:", no_date)
 
 # Save the DataFrame to a SQLite database
