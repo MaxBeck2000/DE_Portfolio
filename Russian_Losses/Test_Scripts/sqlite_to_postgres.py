@@ -5,7 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 import time
 
 dbname="nhai"
-user="postgres"
+user=""
 password=""
 host="localhost"
 port=5432  
