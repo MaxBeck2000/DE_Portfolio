@@ -34,3 +34,15 @@ As of **01/08/2024**, the Tesseract-based script is operational and successfully
 
 - **Extend to Ukrainian Losses**: Incorporate data on Ukrainian losses for comparative analysis.
 - **Optimize Processing**: Continue improving the OCR processing to handle large volumes of images efficiently.
+
+### Folder Directory
+- **Example Processed Images**: Contains a few examples of images before and after processing to enable more accurate transcription using Tesseract.
+- **Test_Scripts**: Several rough scripts used to test some of the features in the project, such as testing connection to Postgres database, and finding dates from twitter and other URLs.
+- **find_date.py**: WIP script to work through the URLs from main_scrape that don't have an easy to find date. Uses Tesseract - need to implement a batch system still etc.
+- **image_date.csv**: CSV file containing the URL and dates of images extracted using find_date.py, currently only populated with test image URL.
+- **imgur.py**: WIP function to call from main_scrape, will find upload date of images in HTML. Currently only 2 images in DB use imgur, so not a priority.
+- **main_scrape.py**: The main script to carry out the extraction, transformation and loading of data from the Oryx webpage to the SQLite DB.
+- **postimg.py**: Function that extracts the date of post from the postimg links that contain the date in the URL. Called from main_scrape.
+- **russian_loss_data.db**: SQLite DB containing the scraped and transformed data.
+- **twitter.py**: Function that extracts the upload date of tweets using the URL. Called from main_scrape.
+- **urls_without_Ddates.csv**: CSV file containing all the image links that do not have an easily accessible date. Will be used in find_date.py to extract as many dates as possible.
