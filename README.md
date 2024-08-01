@@ -1,11 +1,36 @@
-Russian_Losses is a work in progress personal project to scrape the documented Russian losses of equipment in the Ukraine war from
-the webpage https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-equipment.html, save the data to a postgres database,
-and produce visualisations of the losses throughout the war. I would also like to do this for the Ukrainian visually confirmed losses,
-for comparison.
-Each loss entry has data such as the type of equipment (e.g. tanks, aircraft, etc), the specific model (e.g. T-72), and a link to
-the image/video that confirms the loss. Some entries have upload dates readily available - for example the twitter links contain the 
-upload time and date in the URL. Others have dates saved in the image filename. Around 40%, however, don't have easily accessible 
-dates, so I am in the process of implementing an Optical Character Recognition program to search for date stamps within the image.
-To do this I am using Tesseract OCR along with my main scraping script. As of today (01/08/2024), the tesseract script is able to 
-find dates in images, and I am working on an implementation for the thousands of images without easily accessible dates to be processed,
-without putting too much strain on my network.
+## Russian_Losses
+
+**Russian_Losses** is a work-in-progress personal project designed to scrape documented Russian equipment losses in the Ukraine war from the webpage [Oryxspioenkop](https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-equipment.html). The project aims to:
+
+- **Scrape Data**: Extract information on Russian losses, including equipment type (e.g., tanks, aircraft), specific model (e.g., T-72), and links to confirming images or videos.
+- **Database Storage**: Save the scraped data to a PostgreSQL database.
+- **Visualizations**: Create visual representations of the losses throughout the war.
+
+Additionally, there are plans to extend this project to include Ukrainian visually confirmed losses for comparison.
+
+### Key Features
+
+- **Data Extraction**: Captures detailed information about each loss entry, including:
+  - **Equipment Type**: Categories like tanks, aircraft, etc.
+  - **Specific Model**: For example, T-72.
+  - **Image/Video Links**: URLs that confirm the loss.
+
+- **Date Extraction**:
+  - Some entries have readily available upload dates (e.g., from Twitter links).
+  - Dates may also be found in image filenames.
+  - For entries without easily accessible dates (approximately 40%), an Optical Character Recognition (OCR) program is being implemented.
+
+### OCR Implementation
+
+To address the challenge of missing dates, the project uses **Tesseract OCR** integrated into the main scraping script. The OCR program performs the following:
+
+1. **Preprocessing Images**: Enhances image quality for better text recognition.
+2. **Extracting Text**: Utilizes Tesseract to convert image content into text.
+3. **Finding Dates**: Searches the extracted text for date patterns.
+
+As of **01/08/2024**, the Tesseract-based script is operational and successfully extracts dates from images. Work is ongoing to process the thousands of images lacking easily accessible dates, aiming to minimize network strain while managing large-scale data.
+
+### Future Plans
+
+- **Extend to Ukrainian Losses**: Incorporate data on Ukrainian losses for comparative analysis.
+- **Optimize Processing**: Continue improving the OCR processing to handle large volumes of images efficiently.
