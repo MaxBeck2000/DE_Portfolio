@@ -42,7 +42,7 @@ def append_urls_to_csv(url_list, csv_file_path):
             for url in new_urls:
                 writer.writerow([url])
 
-# Read existing URLs stored in CSV before sraping
+# Read existing URLs stored in CSV before scraping
 existing_urls = read_existing_urls(csv_file_path)
 
 # Find all span elements with the class 'mw-headline' and id 'Pistols' as these contain equipment classes
@@ -106,7 +106,7 @@ for span in span_elements:
 df = pd.DataFrame(records)
 
 #prints new URL's without date from future scrapes
-print("URLs without date:", no_date)
+print("New URLs without date:", no_date)
 
 # Save the DataFrame to a SQLite database
 folder_path = r"C:\Users\suici\Github\Russian_Losses"
