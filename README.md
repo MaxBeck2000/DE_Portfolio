@@ -1,6 +1,6 @@
 ## Russian_Losses
 
-**Russian_Losses** is a work-in-progress personal project designed to scrape documented Russian equipment losses in the Ukraine war from the webpage [Oryxspioenkop](https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-equipment.html). The project aims to:
+**Russian_Losses** is a work-in-progress personal project designed to scrape documented Russian equipment losses in the Ukraine war from the webpage [Oryx](https://www.oryxspioenkop.com/2022/02/attack-on-europe-documenting-equipment.html). The project aims to:
 
 - **Scrape Data**: Extract information on Russian losses, including equipment type (e.g., tanks, aircraft), specific model (e.g., T-72), and links to confirming images or videos.
 - **Database Storage**: Save the scraped data to a PostgreSQL database.
