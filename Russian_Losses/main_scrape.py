@@ -25,8 +25,6 @@ no_date = []
 csv_file_path = r'C:\Users\suici\Github\Russian_Losses\urls_without_dates.csv'
 csv_dates_found = r'C:\Users\suici\Github\Russian_Losses\extracted_image_dates.csv'
 
-
-
 # Function to read existing URLs from the CSV file
 def read_existing_urls(csv_file_path):
     if os.path.exists(csv_file_path) and os.path.getsize(csv_file_path) > 0:
@@ -54,7 +52,6 @@ def read_urls_and_dates(csv_file_path):
             return {}
     return {}
 
-
 # Function to append new URLs to the CSV file
 def append_urls_to_csv(url_list, csv_file_path):
     existing_urls = read_existing_urls(csv_file_path)
@@ -72,6 +69,7 @@ def append_urls_to_csv(url_list, csv_file_path):
 # Read existing URLs stored in CSV before scraping
 existing_urls_without_date = read_existing_urls(csv_file_path)
 found_date_urls = read_urls_and_dates(csv_dates_found)
+
 # Find all span elements with the class 'mw-headline' and id 'Pistols'
 span_elements = soup.find_all('span', {'class': 'mw-headline', 'id': 'Pistols'})
 
@@ -108,6 +106,7 @@ for span in span_elements:
                     img_link = a['href']
                     img_desc = a.get_text(strip=True).strip('()')
                     post_time = 'N/A'
+                    
                     if 'twitter.com' in img_link or 'x.com' in img_link:
                         tweet_id = extract_tweet_id(img_link)
                         if tweet_id is not None:
@@ -142,7 +141,39 @@ db_full_path = os.path.join(folder_path, db_filename)
 
 try:
     conn = sqlite3.connect(db_full_path)
-    df.to_sql(table_name, conn, if_exists='replace', index=False)
+    cursor = conn.cursor()
+
+    # Create a temporary table to hold new data
+    df.to_sql('temp_' + table_name, conn, if_exists='replace', index=False)
+    
+    # Create the main table if it doesn't exist
+    cursor.execute(f'''
+        CREATE TABLE IF NOT EXISTS {table_name} (
+            "Equipment Type" TEXT,
+            "Model" TEXT,
+            "Total Model Losses" INTEGER,
+            "Description" TEXT,
+            "Image Date" DATE,
+            "Image Link" TEXT PRIMARY KEY,
+            "Date Scraped" DATE
+        )
+    ''')
+
+    # Update existing records and insert new ones
+    for index, row in df.iterrows():
+        cursor.execute(f'''
+            INSERT OR REPLACE INTO {table_name} (
+                "Equipment Type", 
+                "Model", 
+                "Total Model Losses", 
+                "Description", 
+                "Image Date", 
+                "Image Link", 
+                "Date Scraped"
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (row['Equipment Type'], row['Model'], row['Total Model Losses'], row['Description'], row['Image Date'], row['Image Link'], row['Date Scraped']))
+    
     conn.commit()
 finally:
     conn.close()
