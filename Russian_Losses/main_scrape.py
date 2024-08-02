@@ -23,6 +23,9 @@ no_date = []
 
 # CSV file path for URLs without dates
 csv_file_path = r'C:\Users\suici\Github\Russian_Losses\urls_without_dates.csv'
+csv_dates_found = r'C:\Users\suici\Github\Russian_Losses\extracted_image_dates.csv'
+
+
 
 # Function to read existing URLs from the CSV file
 def read_existing_urls(csv_file_path):
@@ -36,6 +39,21 @@ def read_existing_urls(csv_file_path):
             print(f"An error occurred while reading CSV: {e}")
             return set()
     return set()
+
+def read_urls_and_dates(csv_file_path):
+    if os.path.exists(csv_file_path) and os.path.getsize(csv_file_path) > 0:
+        try:
+            df = pd.read_csv(csv_file_path, header=None)
+            # Assuming URLs are in the first column (index 0) and dates are in the second column (index 1)
+            url_date_dict = dict(zip(df[0], pd.to_datetime(df[1], errors='coerce')))
+            return url_date_dict
+        except pd.errors.EmptyDataError:
+            return {}
+        except Exception as e:
+            print(f"An error occurred while reading CSV: {e}")
+            return {}
+    return {}
+
 
 # Function to append new URLs to the CSV file
 def append_urls_to_csv(url_list, csv_file_path):
@@ -53,7 +71,7 @@ def append_urls_to_csv(url_list, csv_file_path):
 
 # Read existing URLs stored in CSV before scraping
 existing_urls_without_date = read_existing_urls(csv_file_path)
-
+found_date_urls = read_urls_and_dates(csv_dates_found)
 # Find all span elements with the class 'mw-headline' and id 'Pistols'
 span_elements = soup.find_all('span', {'class': 'mw-headline', 'id': 'Pistols'})
 
@@ -98,6 +116,8 @@ for span in span_elements:
                         date_found, date_obj = check_for_date(img_link)
                         if date_found:
                             post_time = date_obj.date()
+                        elif img_link in found_date_urls:
+                            post_time = found_date_urls[img_link].date()
                         else:
                             if img_link not in existing_urls_without_date:
                                 no_date.append(img_link)
