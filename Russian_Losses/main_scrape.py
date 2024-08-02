@@ -43,7 +43,7 @@ def append_urls_to_csv(url_list, csv_file_path):
                 writer.writerow([url])
 
 # Read existing URLs stored in CSV before sraping
-existing_urls = read_existing_urls(csv_file_path)
+existing_urls_without_date = read_existing_urls(csv_file_path)
 
 # Find all span elements with the class 'mw-headline' and id 'Pistols' as these contain equipment classes
 span_elements = soup.find_all('span', {'class': 'mw-headline', 'id': 'Pistols'})
@@ -90,7 +90,7 @@ for span in span_elements:
                         if date_found:
                             post_time = date_obj.date()
                         else:
-                            if img_link not in existing_urls:
+                            if img_link not in existing_urls_without_date:
                                 no_date.append(img_link)
 
                     records.append({

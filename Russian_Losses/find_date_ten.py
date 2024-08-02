@@ -69,13 +69,22 @@ def process_urls_to_csv(source_csv_file_path, output_csv_file_path, processed_cs
         date = extract_date_from_image_url(url)
         if date:
             found_dates.append([url, date])
-        processed_urls.add(url)
+            processed_urls.add(url)
 
     # Append found dates to the output CSV file
     if found_dates:
         with open(output_csv_file_path, mode='a', newline='') as output_file:
             writer = csv.writer(output_file)
             writer.writerows(found_dates)
+
+    # Update the source CSV file by removing successfully processed URLs
+    remaining_urls = [url for url in url_list if url not in processed_urls]
+
+    # Write remaining URLs back to the source CSV file
+    with open(source_csv_file_path, mode='w', newline='') as source_file:
+        writer = csv.writer(source_file)
+        for url in remaining_urls:
+            writer.writerow([url])
 
     # Append processed URLs to the processed CSV file
     with open(processed_csv_file_path, mode='a', newline='') as processed_file:
