@@ -47,37 +47,46 @@ def extract_date_from_image_url(url):
         return None
     return None
 
-def process_urls_to_csv(url_list, output_csv_file_path, source_csv_file_path, batch_size=10):
-    with open(output_csv_file_path, mode='w', newline='') as output_file:
-        writer = csv.writer(output_file)
-        writer.writerow(['URL', 'Date'])
+def process_urls_to_csv(source_csv_file_path, output_csv_file_path, processed_csv_file_path, batch_size=10):
+    # Read processed URLs from the processed CSV file
+    try:
+        with open(processed_csv_file_path, newline='') as processed_file:
+            reader = csv.reader(processed_file)
+            processed_urls = {row[0] for row in reader}
+    except FileNotFoundError:
+        processed_urls = set()
 
-        processed_urls = []
+    # Read URLs from the source CSV file
+    with open(source_csv_file_path, newline='') as source_file:
+        reader = csv.reader(source_file)
+        url_list = [row[0] for row in reader if row[0] not in processed_urls]
 
-        for i in range(0, len(url_list), batch_size):
-            batch = url_list[i:i + batch_size]
-            for url in batch:
-                date = extract_date_from_image_url(url)
-                if date:
-                    writer.writerow([url, date])
-                    processed_urls.append(url)
-                else:
-                    writer.writerow([url, 'Date not found'])
+    # Process only the first batch_size URLs
+    batch_urls = url_list[:batch_size]
+    found_dates = []
 
-        # Update the source CSV file by removing successfully processed URLs
-        remaining_urls = [url for url in url_list if url not in processed_urls]
+    for url in batch_urls:
+        date = extract_date_from_image_url(url)
+        if date:
+            found_dates.append([url, date])
+        processed_urls.add(url)
 
-    with open(source_csv_file_path, mode='w', newline='') as source_file:
-        writer = csv.writer(source_file)
-        for url in remaining_urls:
+    # Append found dates to the output CSV file
+    if found_dates:
+        with open(output_csv_file_path, mode='a', newline='') as output_file:
+            writer = csv.writer(output_file)
+            writer.writerows(found_dates)
+
+    # Append processed URLs to the processed CSV file
+    with open(processed_csv_file_path, mode='a', newline='') as processed_file:
+        writer = csv.writer(processed_file)
+        for url in batch_urls:
             writer.writerow([url])
 
 # Example usage
 source_csv_file_path = r'C:\Users\suici\Github\Russian_Losses\urls_without_dates.csv'
-output_csv_file_path = 'image_dates.csv'
+output_csv_file_path = r'C:\Users\suici\Github\Russian_Losses\extracted_image_dates.csv'
+processed_csv_file_path = r'C:\Users\suici\Github\Russian_Losses\processed_urls.csv'
 
-with open(source_csv_file_path, newline='') as f:
-    reader = csv.reader(f)
-    url_list = [row[0] for row in reader]  # Extract the URLs from the CSV file
-
-process_urls_to_csv(url_list, output_csv_file_path, source_csv_file_path)
+# Process URLs and update the source and processed CSV files
+process_urls_to_csv(source_csv_file_path, output_csv_file_path, processed_csv_file_path, batch_size=10)

@@ -106,7 +106,7 @@ for span in span_elements:
 df = pd.DataFrame(records)
 
 #prints new URL's without date from future scrapes
-print("URLs without date:", no_date)
+print("New URLs without date:", no_date)
 
 # Save the DataFrame to a SQLite database
 folder_path = r"C:\Users\suici\Github\Russian_Losses"
@@ -227,9 +227,6 @@ for span in span_elements:
                     })
 
 df = pd.DataFrame(records)
-
-#prints new URL's without date from future scrapes
-print("New URLs without date:", no_date)
 
 # Save the DataFrame to a SQLite database
 folder_path = r"C:\Users\suici\Github\Russian_Losses"
