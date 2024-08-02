@@ -77,8 +77,8 @@ def process_urls_to_csv(source_csv_file_path, output_csv_file_path, processed_cs
             writer = csv.writer(output_file)
             writer.writerows(found_dates)
 
-    # Update the source CSV file by removing successfully processed URLs
-    remaining_urls = [url for url in url_list if url not in processed_urls]
+    # Update the source CSV file by removing only URLs with found dates
+    remaining_urls = [url for url in url_list if url not in {url for url, _ in found_dates}]
 
     # Write remaining URLs back to the source CSV file
     with open(source_csv_file_path, mode='w', newline='') as source_file:
