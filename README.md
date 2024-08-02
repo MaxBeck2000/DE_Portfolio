@@ -62,4 +62,4 @@ As of **01/08/2024**, the Tesseract-based script is operational and successfully
 - Python learning materials from my Data Engineering bootcamp at my previous role.
   - **NLP**: Natural Language Processing code, including Generative AI and classification.
   - **Python**: Large variety of Python tutorials and questions, ranging from basic to data scraping, use of Pandas, programming, and virtual environments.
-  - **Python Mock 1 & 2**: Past Python exams used for revision for my exam (100% attained).
+  - **Python Mock 1 & 2**: Past Python exams used as revision for bootcamp Python exam (100% marks attained).
