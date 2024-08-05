@@ -133,6 +133,10 @@ for span in span_elements:
 
 df = pd.DataFrame(records)
 
+# Convert NaT to None for all datetime columns
+df['Image Date'] = df['Image Date'].where(pd.notnull(df['Image Date']), None)
+df['Date Scraped'] = df['Date Scraped'].where(pd.notnull(df['Date Scraped']), None)
+
 # Save the DataFrame to a SQLite database
 folder_path = r"C:\Users\suici\Github\Russian_Losses"
 db_filename = 'russian_loss_data.db'
@@ -143,9 +147,6 @@ try:
     conn = sqlite3.connect(db_full_path)
     cursor = conn.cursor()
 
-    # Create a temporary table to hold new data
-    df.to_sql('temp_' + table_name, conn, if_exists='replace', index=False)
-    
     # Create the main table if it doesn't exist
     cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS {table_name} (
@@ -159,21 +160,16 @@ try:
         )
     ''')
 
-    # Update existing records and insert new ones
-    for index, row in df.iterrows():
-        cursor.execute(f'''
-            INSERT OR REPLACE INTO {table_name} (
-                "Equipment Type", 
-                "Model", 
-                "Total Model Losses", 
-                "Description", 
-                "Image Date", 
-                "Image Link", 
-                "Date Scraped"
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (row['Equipment Type'], row['Model'], row['Total Model Losses'], row['Description'], row['Image Date'], row['Image Link'], row['Date Scraped']))
-    
+    # Read existing Image Links from the database
+    cursor.execute(f'SELECT "Image Link" FROM {table_name}')
+    existing_links = set(row[0] for row in cursor.fetchall())
+
+    # Filter new records
+    new_records = df[~df['Image Link'].isin(existing_links)]
+
+    # Insert only new records into the database
+    new_records.to_sql(table_name, conn, if_exists='append', index=False)
+
     conn.commit()
 finally:
     conn.close()
