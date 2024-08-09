@@ -10,7 +10,6 @@ import csv
 
 # Configure pytesseract
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Update this path
-
 def preprocess_image(image):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     alpha = 2.0
@@ -47,7 +46,7 @@ def extract_date_from_image_url(url):
         return None
     return None
 
-def process_urls_to_csv(source_csv_file_path, output_csv_file_path, processed_csv_file_path, batch_size=10):
+def process_urls_to_csv(source_csv_file_path, output_csv_file_path, processed_csv_file_path, batch_size):
     # Read processed URLs from the processed CSV file
     try:
         with open(processed_csv_file_path, newline='') as processed_file:
@@ -91,11 +90,19 @@ def process_urls_to_csv(source_csv_file_path, output_csv_file_path, processed_cs
         writer = csv.writer(processed_file)
         for url in batch_urls:
             writer.writerow([url])
+    
 
-# Example usage
+    pct_found = (len(found_dates)/batch_size)*100
+    print(f'Percentage of URLs where a date was found: {pct_found}')
+
 source_csv_file_path = r'C:\Users\suici\Github\Russian_Losses\urls_without_dates.csv'
 output_csv_file_path = r'C:\Users\suici\Github\Russian_Losses\extracted_image_dates.csv'
 processed_csv_file_path = r'C:\Users\suici\Github\Russian_Losses\processed_urls.csv'
 
 # Process URLs and update the source and processed CSV files
-process_urls_to_csv(source_csv_file_path, output_csv_file_path, processed_csv_file_path, batch_size=500)
+process_urls_to_csv(source_csv_file_path, output_csv_file_path, processed_csv_file_path, batch_size=100)
+
+
+
+
+
