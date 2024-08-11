@@ -20,7 +20,8 @@ soup = BeautifulSoup(html, "html.parser")
 
 records = []
 no_date = []
-
+postimg = []
+alllinks = []
 # CSV file path for URLs without dates
 csv_file_path = r'C:\Users\suici\Github\Russian_Losses\urls_without_dates.csv'
 csv_dates_found = r'C:\Users\suici\Github\Russian_Losses\extracted_image_dates.csv'
@@ -106,6 +107,7 @@ for span in span_elements:
                     img_link = a['href']
                     img_desc = a.get_text(strip=True).strip('()')
                     post_time = 'N/A'
+                    alllinks.append(img_link)
                     
                     if 'twitter.com' in img_link or 'x.com' in img_link:
                         tweet_id = extract_tweet_id(img_link)
@@ -113,6 +115,7 @@ for span in span_elements:
                             post_time = get_tweet_time(tweet_id).date()
                     elif 'postimg' in img_link:
                         date_found, date_obj = check_for_date(img_link)
+                        postimg.append(img_link)
                         if date_found:
                             post_time = date_obj.date()
                         elif img_link in found_date_urls:
@@ -178,4 +181,9 @@ finally:
 append_urls_to_csv(no_date, csv_file_path)
 
 # Print new URLs without date from future scrapes
-print("New URLs without date:", no_date)
+#print("New URLs without date:", no_date)
+# print(len(postimg))
+# print(len(alllinks))
+# print(f"Number of records in DataFrame: {len(df)}")
+unique_alllinks = set(alllinks)
+print(f"Unique URLs collected: {len(unique_alllinks)}")

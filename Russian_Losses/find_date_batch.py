@@ -100,7 +100,7 @@ output_csv_file_path = r'C:\Users\suici\Github\Russian_Losses\extracted_image_da
 processed_csv_file_path = r'C:\Users\suici\Github\Russian_Losses\processed_urls.csv'
 
 # Process URLs and update the source and processed CSV files
-process_urls_to_csv(source_csv_file_path, output_csv_file_path, processed_csv_file_path, batch_size=100)
+process_urls_to_csv(source_csv_file_path, output_csv_file_path, processed_csv_file_path, batch_size=1000)
 
 
 
