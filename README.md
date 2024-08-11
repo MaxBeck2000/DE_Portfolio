@@ -28,25 +28,26 @@ To address the challenge of missing dates, the project uses **Tesseract OCR** in
 2. **Extracting Text**: Utilizes Tesseract to convert image content into text.
 3. **Finding Dates**: Searches the extracted text for date patterns.
 
-As of **01/08/2024**, the Tesseract-based script is operational and successfully extracts dates from images. Work is ongoing to process the thousands of images lacking easily accessible dates, aiming to minimize network strain while managing large-scale data.
+As of **08/2024**, the Tesseract-based script is operational and successfully extracts dates from images. Work is ongoing to process the thousands of images lacking easily accessible dates, aiming to minimize network strain while managing large-scale data. Currently 63% of the images in the database have a date, and 60% of the postimg.cc links have had image dates retrieved. Around 1,100 image dates have been retrieved using Tesseract OCR.
 
 ### Future Plans
 
 - **Extend to Ukrainian Losses**: Incorporate data on Ukrainian losses for comparative analysis.
 - **Optimize Processing**: Continue improving the OCR processing to handle large volumes of images efficiently.
+- **Implement Machine Learning**: Investigate and implement a machine learning solution to retrieve dates from images where basic OCR processing could not retrieve a date stamp.
 
 ### Folder Directory
 
 - **Example Processed Images**: Contains a few examples of images before and after processing to enable more accurate transcription using Tesseract.
 - **Test_Scripts**: Several rough scripts used to test some of the features in the project, such as testing connection to Postgres database, and finding dates from Twitter and other URLs.
-- **find_date.py**: WIP script to work through the URLs from main_scrape that don't have an easy to find date. Uses Tesseract - need to implement a batch system still etc.
-- **image_date.csv**: CSV file containing the URL and dates of images extracted using find_date.py, currently only populated with test image URL.
-- **imgur.py**: WIP function to call from main_scrape, will find upload date of images in HTML. Currently only 2 images in DB use imgur, so not a priority.
+- **find_date_batch.py**: Script to work through the URLs in batches from main_scrape that don't have an easy to find date. Uses Tesseract OCR.
+- **extracted_image_dates.csv**: CSV file containing the URL and dates of images extracted using find_date_batch.py.
+- **imgur.py**: Function to call from main_scrape, looks for upload date of images in URL. WIP.
 - **main_scrape.py**: The main script to carry out the extraction, transformation, and loading of data from the Oryx webpage to the SQLite DB.
 - **postimg.py**: Function that extracts the date of post from the postimg links that contain the date in the URL. Called from main_scrape.
 - **russian_loss_data.db**: SQLite DB containing the scraped and transformed data.
 - **twitter.py**: Function that extracts the upload date of tweets using the URL. Called from main_scrape.
-- **urls_without_dates.csv**: CSV file containing all the image links that do not have an easily accessible date. Will be used in find_date.py to extract as many dates as possible.
+- **urls_without_dates.csv**: CSV file containing all the postimg.cc links that do not have an easily accessible date. Used by find_date_batch.py to attempt to retrieve a date.
 
 ## Basic_Data_Scrapes
 
