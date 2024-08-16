@@ -18,7 +18,7 @@ def preprocess_image(image):
     blurred = cv2.GaussianBlur(contrast, (5, 5), 0)
     _, thresh = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     return thresh
-
+#Need to edit this so it looks for dates in the following format dd/m/yyyy
 def extract_date_from_image_url(url):
     try:
         response = requests.get(url)
@@ -37,10 +37,12 @@ def extract_date_from_image_url(url):
         custom_config = r'--oem 3 --psm 6'
         text = pytesseract.image_to_string(processed_image_pil, config=custom_config)
         
-        match = re.search(r'\d{2}\.\d{2}\.\d{4}', text)
+        match = re.search(r'\d{1,2}[./]\d{1,2}[./]\d{4}', text)
         if match:
             date_str = match.group()
-            date_obj = datetime.strptime(date_str, '%d.%m.%Y')
+            # Handle both formats: 'dd.mm.yyyy' and 'dd/m/yyyy'
+            date_format = '%d.%m.%Y' if '.' in date_str else '%d/%m/%Y'
+            date_obj = datetime.strptime(date_str, date_format)
             return date_obj.date()
     except Exception:
         return None
