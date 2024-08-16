@@ -7,6 +7,8 @@ import sqlite3
 import os
 import csv
 
+from tabulate import tabulate
+
 from twitter import extract_tweet_id, get_tweet_time
 from postimg import check_for_date
 
@@ -38,6 +40,7 @@ def read_existing_urls(csv_file_path):
             print(f"An error occurred while reading CSV: {e}")
             return set()
     return set()
+
 
 def read_urls_and_dates(csv_file_path):
     if os.path.exists(csv_file_path) and os.path.getsize(csv_file_path) > 0:
@@ -135,7 +138,7 @@ for span in span_elements:
                     })
 
 df = pd.DataFrame(records)
-
+# print(tabulate(df, headers = 'keys', tablefmt = 'psql', showindex=False))
 # Convert NaT to None for all datetime columns
 df['Image Date'] = df['Image Date'].where(pd.notnull(df['Image Date']), None)
 df['Date Scraped'] = df['Date Scraped'].where(pd.notnull(df['Date Scraped']), None)
@@ -163,15 +166,28 @@ try:
         )
     ''')
 
-    # Read existing Image Links from the database
-    cursor.execute(f'SELECT "Image Link" FROM {table_name}')
-    existing_links = set(row[0] for row in cursor.fetchall())
+    # Iterate over DataFrame rows to either update or insert records
+    for index, row in df.iterrows():
+        # Attempt to update the record first
+        cursor.execute(f'''
+            UPDATE {table_name}
+            SET "Equipment Type" = ?,
+                "Model" = ?,
+                "Total Model Losses" = ?,
+                "Description" = ?,
+                "Image Date" = ?
+            WHERE "Image Link" = ?
+        ''', 
+        (row['Equipment Type'], row['Model'], row['Total Model Losses'], row['Description'], row['Image Date'], row['Image Link']))
 
-    # Filter new records
-    new_records = df[~df['Image Link'].isin(existing_links)]
-
-    # Insert only new records into the database
-    new_records.to_sql(table_name, conn, if_exists='append', index=False)
+        # Check if the record was updated
+        if cursor.rowcount == 0:
+            # If no rows were updated, insert the record
+            cursor.execute(f'''
+                INSERT INTO {table_name} ("Equipment Type", "Model", "Total Model Losses", "Description", "Image Date", "Image Link", "Date Scraped")
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', 
+            (row['Equipment Type'], row['Model'], row['Total Model Losses'], row['Description'], row['Image Date'], row['Image Link'], row['Date Scraped']))
 
     conn.commit()
 finally:
@@ -179,6 +195,7 @@ finally:
 
 # Append the no_date list to the CSV file
 append_urls_to_csv(no_date, csv_file_path)
+
 
 # Print new URLs without date from future scrapes
 #print("New URLs without date:", no_date)
