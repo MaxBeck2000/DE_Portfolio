@@ -8,6 +8,7 @@ from io import BytesIO
 import csv
 import easyocr
 
+# Initialize the easyOCR reader
 reader = easyocr.Reader(['en'])
 
 def preprocess_image(image):
@@ -25,29 +26,31 @@ def extract_date_from_image_url(url):
         response.raise_for_status()
         content_type = response.headers.get('Content-Type')
         if 'image' not in content_type:
-            return None
+            return None, 'Not an image URL'
         
         image_bytes = BytesIO(response.content)
         img = Image.open(image_bytes)
         img_cv = np.array(img)
         img_cv = cv2.cvtColor(img_cv, cv2.COLOR_RGB2BGR)
         processed_image = preprocess_image(img_cv)
+        processed_image_pil = Image.fromarray(processed_image)
         
-        # Use OCR to extract text from the processed image
-        text = reader.readtext(np.array(processed_image), detail=0)
-
-        match = re.search(r'\d{1,2}[./]\d{1,2}[./]\d{4}', ' '.join(text))
+        # Use easyOCR to extract text
+        results = reader.readtext(np.array(processed_image_pil))
+        text = ' '.join([result[1] for result in results])
+        
+        # Regex to find dates in 'dd/mm/yyyy' or 'dd.mm.yyyy' format
+        match = re.search(r'\d{1,2}[./]\d{1,2}[./]\d{4}', text)
         if match:
             date_str = match.group()
             # Handle both formats: 'dd.mm.yyyy' and 'dd/m/yyyy'
             date_format = '%d.%m.%Y' if '.' in date_str else '%d/%m/%Y'
             date_obj = datetime.strptime(date_str, date_format)
-            return date_obj.date()
-        else:
-            return text  # Return the detected text if no date is found
+            return date_obj.date(), None
+        
+        return None, text
     except Exception as e:
-        print(f"Error processing {url}: {e}")
-        return None
+        return None, str(e)
 
 def process_urls_to_csv(source_csv_file_path, output_csv_file_path, processed_csv_file_path, remaining_csv_file_path, batch_size):
     # Read processed URLs from the processed CSV file
@@ -58,62 +61,49 @@ def process_urls_to_csv(source_csv_file_path, output_csv_file_path, processed_cs
     except FileNotFoundError:
         processed_urls = set()
 
-    # Read URLs from the source CSV file (unprocessed)
+    # Read URLs from the source CSV file
     with open(source_csv_file_path, newline='') as source_file:
         reader = csv.reader(source_file)
-        source_urls = set(row[0] for row in reader)
+        url_list = [row[0] for row in reader if row[0] in processed_urls]
 
-    print(f"Total URLs in source: {len(source_urls)}")
-    print(f"Already processed URLs: {len(processed_urls)}")
-
-    # Select URLs that are in both the processed set and source set
-    urls_to_process = [url for url in source_urls if url in processed_urls][:batch_size]
-
-    print(f"URLs to process: {len(urls_to_process)}")
-
+    # Process only the first batch_size URLs
+    batch_urls = url_list[:batch_size]
     found_dates = []
-    unfound_dates = []
+    remaining_urls = []
 
-    for url in urls_to_process:
-        result = extract_date_from_image_url(url)
-        if isinstance(result, datetime):
-            found_dates.append([url, result])
-            processed_urls.add(url)
-        elif isinstance(result, list):  # If the result is the detected text list
-            unfound_dates.append([url, ' '.join(result)])  # Store the URL and detected text
+    for url in batch_urls:
+        date, text = extract_date_from_image_url(url)
+        if date:
+            found_dates.append([url, date])
+        else:
+            remaining_urls.append([url, text])
 
-    # Ensure that found dates are written to the output file
+    # Append found dates to the output CSV file
     if found_dates:
         with open(output_csv_file_path, mode='a', newline='') as output_file:
             writer = csv.writer(output_file)
             writer.writerows(found_dates)
-            print(f"Dates found and written: {len(found_dates)}")
 
-    # Remove URLs with found dates from the source list before writing back
-    remaining_urls = [url for url in source_urls if url not in processed_urls]
-
-    print(f"Remaining URLs to write: {len(remaining_urls)}")
-
-    # Update the source CSV with remaining URLs (those still without dates)
-    with open(source_csv_file_path, mode='w', newline='') as source_file:  # Use write mode to overwrite the file
-        writer = csv.writer(source_file)
-        for url in remaining_urls:
-            writer.writerow([url])
-
-    # Append URLs with no found date but with detected text to the remaining CSV file
-    if unfound_dates:
+    # Append remaining URLs with detected text to the remaining URLs CSV
+    if remaining_urls:
         with open(remaining_csv_file_path, mode='a', newline='') as remaining_file:
             writer = csv.writer(remaining_file)
-            writer.writerows(unfound_dates)
-            print(f"Unfound URLs written to remaining file: {len(unfound_dates)}")
-            
-    pct_found = (len(found_dates) / len(urls_to_process)) * 100 if urls_to_process else 0
+            writer.writerows(remaining_urls)
+
+    # Update the source CSV file by removing only URLs with found dates
+    remaining_urls_list = [url for url in url_list if url not in {url for url, _ in found_dates}]
+    with open(source_csv_file_path, mode='w', newline='') as source_file:
+        writer = csv.writer(source_file)
+        for url in remaining_urls_list:
+            writer.writerow([url])
+
+    pct_found = (len(found_dates) / batch_size) * 100 if batch_size > 0 else 0
     print(f'Percentage of URLs where a date was found: {pct_found:.2f}%')
 
-# Example paths
 source_csv_file_path = r'C:\Users\suici\Github\Russian_Losses\urls_without_dates.csv'
 output_csv_file_path = r'C:\Users\suici\Github\Russian_Losses\extracted_image_dates.csv'
 processed_csv_file_path = r'C:\Users\suici\Github\Russian_Losses\processed_urls.csv'
 remaining_csv_file_path = r'C:\Users\suici\Github\Russian_Losses\remaining_urls.csv'
 
+# Process URLs and update the source and remaining CSV files
 process_urls_to_csv(source_csv_file_path, output_csv_file_path, processed_csv_file_path, remaining_csv_file_path, batch_size=10)
