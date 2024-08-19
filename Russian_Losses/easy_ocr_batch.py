@@ -20,6 +20,18 @@ def preprocess_image(image):
     _, thresh = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     return thresh
 
+def clean_extracted_text(text):
+    """
+    Clean and normalize extracted text to handle common OCR errors and improve date detection.
+    """
+    # Replace common OCR errors
+    text = text.replace('O', '0').replace('I', '1').replace('|', '1')
+    
+    # Remove any non-alphanumeric characters except date separators
+    text = re.sub(r'[^\w\s./,-]', '', text)
+    
+    return text
+
 def extract_date_from_image_url(url):
     try:
         response = requests.get(url)
@@ -39,15 +51,43 @@ def extract_date_from_image_url(url):
         results = reader.readtext(np.array(processed_image_pil))
         text = ' '.join([result[1] for result in results])
         
-        # Regex to find dates in 'dd/mm/yyyy' or 'dd.mm.yyyy' format
-        match = re.search(r'\d{1,2}[./]\d{1,2}[./]\d{4}', text)
-        if match:
-            date_str = match.group()
-            # Handle both formats: 'dd.mm.yyyy' and 'dd/m/yyyy'
-            date_format = '%d.%m.%Y' if '.' in date_str else '%d/%m/%Y'
-            date_obj = datetime.strptime(date_str, date_format)
-            return date_obj.date(), None
+        # Clean the extracted text
+        cleaned_text = clean_extracted_text(text)
+        print(f"Extracted text: {cleaned_text}")  # Debug statement
+
+        # Regex to find various date formats, including those with commas
+        date_patterns = [
+            r'\b\d{1,2}[./,-]\d{1,2}[./,-]\d{4}\b',  # dd/mm/yyyy, dd-mm-yyyy, dd.mm.yyyy, dd,mm,yyyy
+            r'\b\d{1,2}[./,-]\d{1,2}[./,-]\d{2}\b',  # dd/mm/yy, dd-mm-yy, dd.mm.yy, dd,mm,yy
+            r'\b\d{1,2}[./,-]\d{2}[./,-]\d{2}\b',    # dd/mm/yy with two-digit year
+            r'\b\d{1,2}[./,-]\d{2}\b',               # dd-mm, dd/mm, dd.mm, dd,mm
+            r'\b\d{2}[./,-]\d{2}[./,-]\d{2}\b',      # mm/dd/yy (US format)
+            r'\b\d{1,2}[./,-]\d{1,2}[./,-]\d{2,4}\b' # Various formats with commas
+        ]
         
+        for pattern in date_patterns:
+            match = re.search(pattern, cleaned_text)
+            if match:
+                date_str = match.group()
+                print(f"Matched date string: {date_str}")  # Debug statement
+                
+                # Normalize date_str by replacing commas with dots to standardize it
+                date_str = date_str.replace(',', '.')
+                
+                # Handle various date formats
+                date_formats = [
+                    '%d-%m-%Y', '%d/%m/%Y', '%d.%m.%Y',  # Full year
+                    '%d-%m-%y', '%d/%m/%y', '%d.%m.%y',  # Two-digit year
+                    '%m-%d-%y', '%m/%d/%y'               # US format (optional)
+                ]
+                for fmt in date_formats:
+                    try:
+                        date_obj = datetime.strptime(date_str, fmt)
+                        return date_obj.date(), None
+                    except ValueError:
+                        continue
+        
+        print(f"No valid date found in text: {cleaned_text}")  # Debug statement for missing dates
         return None, text
     except Exception as e:
         return None, str(e)
@@ -106,4 +146,4 @@ processed_csv_file_path = r'C:\Users\suici\Github\Russian_Losses\processed_urls.
 remaining_csv_file_path = r'C:\Users\suici\Github\Russian_Losses\remaining_urls.csv'
 
 # Process URLs and update the source and remaining CSV files
-process_urls_to_csv(source_csv_file_path, output_csv_file_path, processed_csv_file_path, remaining_csv_file_path, batch_size=10)
+process_urls_to_csv(source_csv_file_path, output_csv_file_path, processed_csv_file_path, remaining_csv_file_path, batch_size=100)
