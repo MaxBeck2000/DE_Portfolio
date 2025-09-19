@@ -173,6 +173,8 @@ df['Date Scraped'] = df['Date Scraped'].where(pd.notnull(df['Date Scraped']), No
 
 # Save the DataFrame to a SQLite database
 folder_path = r"C:\Users\suici\Github\Russian_Losses"
+csv_filename = 'russian_loss_data.csv'
+df.to_csv(f'{folder_path}/{csv_filename}')
 db_filename = 'russian_loss_data.db'
 table_name = 'equipment_losses'
 db_full_path = os.path.join(folder_path, db_filename)
